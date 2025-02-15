@@ -1,0 +1,41 @@
+from mido import MidiFile, MidiTrack, Message
+
+# Create a new MIDI file and track
+midi = MidiFile()
+track = MidiTrack()
+midi.tracks.append(track)
+
+# Tempo (97 BPM)
+tempo = 60000000 // 97  # Microseconds per beat
+track.append(Message('control_change', channel=0, control=0x51, value=tempo))
+
+# Scale: F# Minor (F#, G#, A, B, C#, D, E)
+scale = [54, 56, 57, 59, 61, 62, 64]  # F#3 to E4
+
+# Generate a synth arpeggio pattern
+arpeggio_pattern = [0, 2, 4, 6, 4, 2]  # Ascending and descending
+for i in range(16):
+    note = scale[arpeggio_pattern[i % len(arpeggio_pattern)]] + (12 if i % 8 > 4 else 0)
+    track.append(Message('note_on', note=note, velocity=80, time=120))
+    track.append(Message('note_off', note=note, velocity=80, time=120))
+
+# Generate cinematic pad chords (held notes)
+pad_chords = [
+    [54, 57, 61],  # F# Minor
+    [52, 56, 59],  # E Major
+    [49, 52, 57],  # D Major
+    [47, 51, 54]   # C# Minor
+]
+
+for chord in pad_chords:
+    for note in chord:
+        track.append(Message('note_on', note=note, velocity=60, time=0))
+    track.append(Message('note_off', note=chord[0], velocity=60, time=480))
+    track.append(Message('note_off', note=chord[1], velocity=60, time=0))
+    track.append(Message('note_off', note=chord[2], velocity=60, time=0))
+
+# Save the MIDI file
+with open("mike_dean_style.mid", "wb") as output_file:
+    midi.save(output_file)
+
+print("MIDI file generated: mike_dean_style.mid")
